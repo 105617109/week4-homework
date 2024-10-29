@@ -1,0 +1,40 @@
+---
+title: "week4 homework"
+author: "tangzhixian"
+date: "2024-10-29"
+output: html_document
+---
+
+```{r}
+library(sf)
+library(countrycode)
+library(dplyr)
+gender2010 <- read.csv("/Users/tangzhixian/Desktop/week4 homework/genderdata 2010.csv")
+gender2019 <- read.csv("/Users/tangzhixian/Desktop/week4 homework/genderdata2019.csv")
+worldshp <- st_read("/Users/tangzhixian/Desktop/World_Countries_(Generalized)/World_Countries__Generalized_.shp")
+gender2010$ISO <- countrycode(gender2010$country, origin = 'country.name', destination = 'iso2c')
+gender2019$ISO <- countrycode(gender2019$country, origin = 'country.name', destination = 'iso2c')
+
+colnames(gender2010)[colnames(gender2010)=="value"] <- "2010value"
+colnames(gender2019)[colnames(gender2019)=="value"] <- "2019value"
+mergedata1 <- merge(worldshp,gender2010[,c("ISO","country","2010value")],by="ISO")
+mergedata2 <- merge(mergedata1,gender2019[,c("ISO","2019value")],by="ISO")
+finaldata <- mergedata2[,c("ISO","country","2010value","2019value")]
+finaldata$diff <- finaldata$'2019value'-finaldata$'2010value'
+finaldata$geometry <- NULL
+worldshpmerge <- merge(worldshp,finaldata,by="ISO")
+install.packages("ggplot2")
+library(ggplot2)
+ggplot(data = worldshpmerge) +
+geom_sf(aes(fill = diff)) + 
+scale_fill_viridis_c(option = "plasma") + 
+labs(fill = "2019 - 2010", title = "2019 - 2010 map") +
+theme_minimal() +
+theme(
+panel.grid = element_blank(), 
+axis.text = element_blank(),  
+axis.ticks = element_blank(), 
+plot.title = element_text(hjust = 0.5, size = 16) 
+)
+```
+
